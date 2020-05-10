@@ -1,6 +1,5 @@
 package-lock.json
 node_modules/*
-cookies/*
 accounts.txt
 local.json
 compiled/*
