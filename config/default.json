@@ -1,5 +1,5 @@
 {
-    "browserExecutablePath":"./compiled/chrome-win/chrome.exe",
+    "browserExecutablePath":"./node_modules/puppeteer/.local-chromium/win64-737027/chrome-win/chrome.exe",
     "randomDelay":5000,
     "searchDelay":5000,
     "searchPageDelay":20000,

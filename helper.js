@@ -74,6 +74,9 @@ module.exports = function(config,fs) {
         }
     }
     this.saveCookies=async function (prefix,cookiesPath,inPage){
+        if (!fs.existsSync("cookies")) {
+            fs.mkdirSync("cookies");
+        }
         cookiesPath+='.json'
         const cookiesObject = await inPage.cookies()
         fs.writeFileSync("cookies/"+prefix+"_"+cookiesPath, JSON.stringify(cookiesObject,null,2));
