@@ -1,18 +1,18 @@
 {
-    "browserExecutablePath":"./node_modules/puppeteer/.local-chromium/win64-737027/chrome-win/chrome.exe",
-    "randomDelay":5000,
-    "searchDelay":5000,
-    "searchPageDelay":20000,
-    "accountDelay":60000,
-    "updateCookies":true,
-    "maxPcSearches":35,
-    "maxMobileSearches":45,
-    "doDailySet":false,
-    "stopOnMaxEarned":true,
-    "pcUserAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363",
-    "mobileUserAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/54.0.2840.66 Mobile/16A366 Safari/602.1",
-    "accounts":[
-        "fake_account"
-    ],
-    "proxys":[]
+  "browserExecutablePath": "./browser/chrome-win/chrome.exe",
+  "randomDelay": 5000,
+  "searchDelay": 5000,
+  "searchPageDelay": 20000,
+  "accountDelay": 60000,
+  "updateCookies": true,
+  "maxPcSearches": 35,
+  "maxMobileSearches": 45,
+  "doDailySet": false,
+  "stopOnMaxEarned": true,
+  "pcUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363",
+  "mobileUserAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/54.0.2840.66 Mobile/16A366 Safari/602.1",
+  "accounts": [
+    "fake_account"
+  ],
+  "proxys": []
 }

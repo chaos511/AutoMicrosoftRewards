@@ -20,7 +20,7 @@ if(!fs.existsSync("config/default.json")){
     ],
     "proxys":[]
   }
-  fs.writeFileSync(JSON.stringify(defaultConfig,null,2))
+  fs.writeFileSync("config/default.json",JSON.stringify(defaultConfig,null,2))
 }
 
 const config = require('config');
