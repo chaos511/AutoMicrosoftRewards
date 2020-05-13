@@ -1,5 +1,6 @@
 {
   "browserExecutablePath": "./browser/chrome-win/chrome.exe",
+  "useHeadless":false,
   "randomDelay": 5000,
   "searchDelay": 5000,
   "searchPageDelay": 20000,

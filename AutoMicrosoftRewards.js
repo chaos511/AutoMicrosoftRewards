@@ -7,6 +7,7 @@ if(!fs.existsSync("./config/default.json")){
   console.log("No config file found creating")
   defaultConfig={
     "browserExecutablePath": "./browser/chrome-win/chrome.exe",
+    "useHeadless":false,
     "randomDelay": 5000,
     "searchDelay": 5000,
     "searchPageDelay": 20000,
@@ -82,7 +83,15 @@ async function doSearches(browser,deviceType,account,password,proxy){
     console.log("login")
     await bingLogin(mainPage,account,password)
     console.log("done login")
-  }
+    if(config.get("updateCookies")){
+      try{
+        await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+        await saveCookies("bing",account,mainPage)
+      }catch(e){
+          console.log("Error updating Cookies: "+e)
+          return
+      }
+    }  }
   console.log("done logging in")
   var maxSearches=0
   if(deviceType==0){
@@ -291,6 +300,9 @@ async function run(account,password,proxy) {
     //  '--disable-extensions-except='+pathToMicrosoftRewards,
     //  '--load-extension='+pathToMicrosoftRewards,
       ]
+      if(config.get("useHeadless")){
+        args.push("--headless")
+      }
     if(proxy){
       args.push('--proxy-server='+proxy)
       // args.push('--proxy-bypass-list="192.168.*;*.google.*"')
