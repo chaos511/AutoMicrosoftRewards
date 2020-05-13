@@ -1,7 +1,10 @@
-const puppeteer = require('puppeteer');
 const cookiesFilePath="cookies.json"
 const fs = require("fs"); 
-if(!fs.existsSync("config/default.json")){
+if(!fs.existsSync("./config/default.json")){
+  if (!fs.existsSync("config")) {
+    fs.mkdirSync("config");
+  }
+  console.log("No config file found creating")
   defaultConfig={
     "browserExecutablePath": "./browser/chrome-win/chrome.exe",
     "randomDelay": 5000,
@@ -23,9 +26,11 @@ if(!fs.existsSync("config/default.json")){
     ],
     "proxys": []
   }
-  fs.writeFileSync("config/default.json",JSON.stringify(defaultConfig,null,2))
+  fs.writeFileSync("./config/default.json",JSON.stringify(defaultConfig,null,2))
+  console.log("config file generated: Exiting")
+  process.exit(0)
 }
-
+const puppeteer = require('puppeteer');
 const config = require('config');
 // const pathToMicrosoftRewards= require('path').join(__dirname, 'microsoftRewards/1.5_0');
 require('./helper.js')(config,fs);

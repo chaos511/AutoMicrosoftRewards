@@ -14,7 +14,7 @@
   "accounts": [
     "fake_account@fakedomain.com"
   ],
-  "passwords":[
+  "passwords": [
     "password123"
   ],
   "proxys": []
