@@ -278,8 +278,9 @@ async function doDailySet(browser,account,proxy){
     }catch(e){
       console.log("daily set "+x+"failed: "+e)
     }
+    pages = await browser.pages();
     if(pages.length>1){
-      pages[1].close()
+      await pages[1].close()
     }
   }
   if(config.get("updateCookies")){

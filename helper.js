@@ -40,6 +40,7 @@ module.exports = function(config,fs) {
           }catch(e){
             console.log("Error Loading Page: "+e)
           }
+          await sleep(1000)
           return await eval(`  
             inPage.evaluate(function(num){
                 var set=document.querySelector(".m-card-group").getElementsByTagName("mee-card")
