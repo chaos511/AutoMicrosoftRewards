@@ -3,18 +3,20 @@ module.exports = function(config,fs) {
     const xml2js = require('xml2js');
     const parser = new xml2js.Parser({ attrkey: "ATTR" });
 
-    this.getDailySet=async function(inPage){
+    this.clickDailySet=async function(inPage,num){
         try{
             await inPage.goto("https://account.microsoft.com/rewards?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
           }catch(e){
             console.log("Error Loading Page: "+e)
           }
-          return await inPage.evaluate(function(){
+          return await inPage.evaluate(function(num){
             var set=document.querySelector(".m-card-group").getElementsByTagName("mee-card")
-            for(var x of set){
-                console.log(x)
+            if(set[num].getElementsByClassName("mee-icon mee-icon-AddMedium").length>0||set[num].getElementsByClassName("mee-icon mee-icon-HourGlass x-hidden-focus").length>0){
+                set[num].getElementsByTagName('a')[1].click()
+            }else{
+                return "done"
             }
-          })
+          },num)
     }
     this.getBalance=async function (inBrowser,account){
         page=await inBrowser.newPage()

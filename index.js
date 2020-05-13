@@ -116,6 +116,7 @@ async function doDailySet(browser,account,proxy){
   await mainPage.setUserAgent(config.get("pcUserAgent"))
   try{
     await loadCookies("microsoft",account,mainPage,true)
+    await loadCookies("bing",account,mainPage,true)
   }catch(e){
     console.log("Error Load Cookies For Microsoft_"+account)
     try{
@@ -130,7 +131,111 @@ async function doDailySet(browser,account,proxy){
     })
     await saveCookies("microsoft",account,mainPage)
   }
+  for(var x=0;x<3;x++){
+    try{
+      var clickReturn=await clickDailySet(mainPage,x)
+      if(clickReturn=="done"){
+        console.log("Daily Set "+x+" Already Done")
+      }else{
+        await new Promise((resolve) => {
+          setTimeout(resolve, 5000);
+          setInterval(async function(){
+            if((await browser.pages()).length>1){
+              resolve()
+            }
+          },100)
+        });
+        pages = await browser.pages();
+        if(pages.length>1){
+          await pages[1].reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+          sleep(5000)
+          console.log("starting quiz")
+          await pages[1].evaluate(async function(){
+            if(document.querySelector(".TriviaOverlayData")){//lower third
+              if(document.querySelector("#rqStartQuiz")){//quiz
+                document.querySelector("#rqStartQuiz").click()
+              }
+            }
+          })
+          await sleep(2000)
+          var quizType=await pages[1].evaluate(async function(){
+            if(document.querySelector(".btQueTtle")&&document.querySelector(".btQueTtle").innerText=="This or that?"){//this or that
+              return 1//this or that
+            }else if(document.querySelector(".rqTitle")&&document.querySelector(".rqTitle").innerText=="Rewards quiz"){
+              return 2//supersonic
+            }else if(document.querySelector(".bt_title")&&document.querySelector(".bt_title").innerText=="Today's Rewards poll"){
+              return 3//poll
+            }else if(document.querySelector(".b_focusLabel")&&document.querySelector(".b_focusLabel").innerText=="Bing homepage quiz"){
+              return 4//homepage quiz
+            }else{
+              return 0
+            }
+          })
+          console.log("Quiz Type: "+quizType)
 
+          switch(quizType){
+            case 1:
+              for(var question=0;question<7;question++){
+                await pages[1].evaluate(async function(){
+                  var options=document.getElementsByClassName("btOptionCard")
+                  options[parseInt(Math.random()*1.9)].click()
+                })
+                await sleep(5000)
+              }
+            break
+            case 2:
+              for(var question=0;question<20;question++){
+                if(question%5==0){
+                  try{
+                    await pages[1].click('#rqAnswerOption0')
+                  }catch(ignore){}
+                }
+                await pages[1].evaluate(async function(){
+                  for(var option of document.querySelector(".btOptions").children){
+                    if(option.children[0].getAttribute("iscorrectoption")=="True"){
+                      option.children[0].click()
+                    }
+                  }
+                })
+                await sleep(3000)
+              }
+            break
+            case 3:
+              await pages[1].evaluate(async function(){
+                btoption0.click()
+              })
+              await sleep(3000)
+            break
+            case 4:
+              for(var question=0;question<7;question++){
+                try{
+                  await pages[1].evaluate(async function(){
+                    document.getElementsByClassName("b_vPanel")[document.getElementsByClassName("b_vPanel").length-1].querySelector(".wk_paddingBtm").onmouseup()
+                  // WKQuiz_V2.showAnswerPane(event, 0, '')
+                  })
+                  await sleep(500)
+                  await pages[1].evaluate(async function(){
+                    WKQuiz_V2.showQuestionPane()             
+                  })
+                  await sleep(500)
+                }catch(ignore){}
+              }
+            break
+            default:
+              console.log("unknown quiz type")
+            break
+          }          
+        }else{
+          console.log("Daily Set Did Not Open New Page")
+        }
+      }
+    }catch(e){
+      console.log("daily set "+x+"failed: "+e)
+    }
+    if(pages.length>1){
+      pages[1].close()
+    }
+  }
   if(config.get("updateCookies")){
     try{
       await mainPage.goto("https://account.microsoft.com/rewards/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
@@ -140,8 +245,6 @@ async function doDailySet(browser,account,proxy){
         return
     }
   }
-  var dailySet=await getDailySet(mainPage)
-  console.log(dailySet)
 }
 
 async function run(account,proxy) {
