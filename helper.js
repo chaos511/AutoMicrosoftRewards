@@ -3,54 +3,89 @@ module.exports = function(config,fs) {
     const xml2js = require('xml2js');
     const parser = new xml2js.Parser({ attrkey: "ATTR" });
 
+    this.bingLogin=async function(inPage,username,password){
+        var loginText=
+            await eval(`
+                inPage.evaluate(function(){
+                loginText=document.querySelector("#id_s").innerText
+                if(loginText=="Sign in"&&document.querySelector("#id_s").getAttribute("aria-hidden")=="false"){
+                    return true
+                }
+                return false
+                })
+            `)
+        console.log("login: "+loginText)
+        if(loginText){
+            await inPage.click('#id_l');
+            await inPage.waitForSelector("#i0116")
+            await sleep(1000)
+            await inPage.type("#i0116",username+'\n')
+            await inPage.waitForSelector("#i0118")
+            await sleep(1000)
+            await inPage.type("#i0118",password+'\n')
+            await sleep(3000)
+            await eval(`
+                inPage.evaluate(function(){
+                    if(document.querySelector(".row.text-title")&&document.querySelector(".row.text-title").innerText=="Stay signed in?"){
+                        idSIButton9.click()
+                    }
+                })
+            `)
+            await sleep(1000)
+        }
+    }
     this.clickDailySet=async function(inPage,num){
         try{
             await inPage.goto("https://account.microsoft.com/rewards?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
           }catch(e){
             console.log("Error Loading Page: "+e)
           }
-          return await inPage.evaluate(function(num){
-            var set=document.querySelector(".m-card-group").getElementsByTagName("mee-card")
-            if(set[num].getElementsByClassName("mee-icon mee-icon-AddMedium").length>0||set[num].getElementsByClassName("mee-icon mee-icon-HourGlass x-hidden-focus").length>0){
-                set[num].getElementsByTagName('a')[1].click()
-            }else{
-                return "done"
-            }
-          },num)
+          return await eval(`  
+            inPage.evaluate(function(num){
+                var set=document.querySelector(".m-card-group").getElementsByTagName("mee-card")
+                if(set[num].getElementsByClassName("mee-icon mee-icon-AddMedium").length>0||set[num].getElementsByClassName("mee-icon mee-icon-HourGlass x-hidden-focus").length>0){
+                    set[num].getElementsByTagName('a')[1].click()
+                }else{
+                    return "done"
+                }
+            },num)
+          `)
     }
     this.getBalance=async function (inBrowser,account){
         page=await inBrowser.newPage()
         await page.setUserAgent(config.get("pcUserAgent"))
         await loadCookies("bing",account,page,false)
         await page.goto("https://www.bing.com/rewardsapp/bepflyoutpage?style=modular", { waitUntil: 'load', timeout: 0 });
-        var bal= await page.evaluate(function(){
-        var bal={}
-        if(document.querySelector(".allsearch")){
-            bal['earnedPcSearch']=document.querySelector(".allsearch").innerText
-        }else if(document.querySelector(".pcsearch")){
-            bal['earnedPcSearch']=document.querySelector(".pcsearch").innerText
-        }else{
-            bal['earnedPcSearch']='failed to get earnings'
-        }
-        if(document.querySelector(".mobilesearch")){
-            bal['earnedMobileSearch']=document.querySelector(".mobilesearch").innerText
-        }else{
-            bal['earnedMobileSearch']='failed to get earnings'
-        }
-        bal['total']=document.querySelector(".credits2").innerText.split(' ')[0]
-        return bal
-        })
+        var bal= await eval(`
+            page.evaluate(function(){
+                var bal={}
+                if(document.querySelector(".allsearch")){
+                    bal['earnedPcSearch']=document.querySelector(".allsearch").innerText
+                }else if(document.querySelector(".pcsearch")){
+                    bal['earnedPcSearch']=document.querySelector(".pcsearch").innerText
+                }else{
+                    bal['earnedPcSearch']='failed to get earnings'
+                }
+                if(document.querySelector(".mobilesearch")){
+                    bal['earnedMobileSearch']=document.querySelector(".mobilesearch").innerText
+                }else{
+                    bal['earnedMobileSearch']='failed to get earnings'
+                }
+                bal['total']=document.querySelector(".credits2").innerText.split(' ')[0]
+                return bal
+            })
+        `)
         await page.close()
         return bal
     }
     this.search=async function (text,inPage){
         try{
-        await inPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
-        await new Promise(async(resolve, reject) => {
-            setTimeout(async function(){
-            return resolve(await inPage.type('#sb_form_q',text+'\n',{waitUntil:'networkidle0'}));  
-            },Math.random()*config.get('randomDelay')+config.get('searchDelay'))
-        })
+            await inPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+            await new Promise(async(resolve, reject) => {
+                setTimeout(async function(){
+                return resolve(await inPage.type('#sb_form_q',text+'\n',{waitUntil:'networkidle0'}));  
+                },Math.random()*config.get('randomDelay')+config.get('searchDelay'))
+            })
         }catch(e){
             console.log("Error Searching: "+e)
             return
@@ -72,7 +107,6 @@ module.exports = function(config,fs) {
         }
         }else{
         console.log('Session '+prefix+"_"+cookiesPath+' could not be found')
-        throw error('Session '+prefix+"_"+cookiesPath+' could not be found')
         }
     }
     this.saveCookies=async function (prefix,cookiesPath,inPage){
@@ -112,7 +146,7 @@ module.exports = function(config,fs) {
         }
         newTrendingSearches=newTrendingSearches.concat(trendingSearches)
         newTrendingSearches=Array.from(new Set(newTrendingSearches))
-        newTrendingSearches.length = Math.min(200,newTrendingSearches.length);
+        newTrendingSearches.length = Math.min(1000,newTrendingSearches.length);
         fs.writeFileSync("trendingSearches.json", JSON.stringify(newTrendingSearches,null,2)); 
         return newTrendingSearches
     }

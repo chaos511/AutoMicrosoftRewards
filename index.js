@@ -3,22 +3,25 @@ const cookiesFilePath="cookies.json"
 const fs = require("fs"); 
 if(!fs.existsSync("config/default.json")){
   defaultConfig={
-    "browserExecutablePath":"./browser/chrome-win/chrome.exe",
-    "randomDelay":5000,
-    "searchDelay":5000,
-    "searchPageDelay":20000,
-    "accountDelay":60000,
-    "updateCookies":true,
-    "maxPcSearches":35,
-    "maxMobileSearches":45,
-    "doDailySet":false,
-    "stopOnMaxEarned":true,
-    "pcUserAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363",
-    "mobileUserAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/54.0.2840.66 Mobile/16A366 Safari/602.1",
-    "accounts":[
-        "fake_account"
+    "browserExecutablePath": "./browser/chrome-win/chrome.exe",
+    "randomDelay": 5000,
+    "searchDelay": 5000,
+    "searchPageDelay": 20000,
+    "accountDelay": 60000,
+    "updateCookies": true,
+    "maxPcSearches": 35,
+    "maxMobileSearches": 45,
+    "doDailySet": true,
+    "stopOnMaxEarned": true,
+    "pcUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363",
+    "mobileUserAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/54.0.2840.66 Mobile/16A366 Safari/602.1",
+    "accounts": [
+      "fake_account@fakedomain.com"
     ],
-    "proxys":[]
+    "passwords":[
+      "password123"
+    ],
+    "proxys": []
   }
   fs.writeFileSync("config/default.json",JSON.stringify(defaultConfig,null,2))
 }
@@ -34,7 +37,7 @@ const readline = require('readline').createInterface({
 
 var searches=[]
 
-async function doSearches(browser,deviceType,account,proxy){
+async function doSearches(browser,deviceType,account,password,proxy){
   var pages = await browser.pages();
   var mainPage=pages[0]
   if(deviceType==0){
@@ -44,30 +47,38 @@ async function doSearches(browser,deviceType,account,proxy){
   }
   try{
     await loadCookies("bing",account,mainPage,true)
-    try{
-      await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
-    }catch(e){
-      console.log("Error Loading Page: "+e)
-    }
   }catch(e){
-    console.log("Error Load Cookies For "+account)
-    try{
-      await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
-    }catch(e){
-      console.log("Error Loading Page: "+e)
-    }
-    await new Promise(async(resolve, reject) => {
-      readline.question("\n\nlogin to the Bing and press enter here when done:",async function(){
-        return resolve(true);  
-      })
-    })
-    try{
-      await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
-    }catch(e){
-      console.log("Error Loading Page: "+e)
-    }
-    await saveCookies("bing",account,mainPage)
+    // console.log("Error Load Cookies For "+account)
+    // try{
+    //   await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+    // }catch(e){
+    //   console.log("Error Loading Page: "+e)
+    // }
+    // await new Promise(async(resolve, reject) => {
+    //   readline.question("\n\nlogin to the Bing and press enter here when done:",async function(){
+    //     return resolve(true);  
+    //   })
+    // })
+    // try{
+    //   await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+    // }catch(e){
+    //   console.log("Error Loading Page: "+e)
+    // }
+    // await saveCookies("bing",account,mainPage)
   }
+  try{
+    await mainPage.goto("https://www.bing.com/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+  }catch(e){
+    console.log("Error Loading Page: "+e)
+  }
+  if(deviceType==0){
+    await mainPage.waitForSelector('#id_l')
+    await sleep(10000)
+    console.log("login")
+    await bingLogin(mainPage,account,password)
+    console.log("done login")
+  }
+  console.log("done logging in")
   var maxSearches=0
   if(deviceType==0){
     maxSearches=config.get("maxPcSearches")
@@ -150,36 +161,42 @@ async function doDailySet(browser,account,proxy){
           await pages[1].reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
           sleep(5000)
           console.log("starting quiz")
-          await pages[1].evaluate(async function(){
-            if(document.querySelector(".TriviaOverlayData")){//lower third
-              if(document.querySelector("#rqStartQuiz")){//quiz
-                document.querySelector("#rqStartQuiz").click()
+          await eval(`
+            pages[1].evaluate(async function(){
+              if(document.querySelector(".TriviaOverlayData")){//lower third
+                if(document.querySelector("#rqStartQuiz")){//quiz
+                  document.querySelector("#rqStartQuiz").click()
+                }
               }
-            }
-          })
+            })
+          `)
           await sleep(2000)
-          var quizType=await pages[1].evaluate(async function(){
-            if(document.querySelector(".btQueTtle")&&document.querySelector(".btQueTtle").innerText=="This or that?"){//this or that
-              return 1//this or that
-            }else if(document.querySelector(".rqTitle")&&document.querySelector(".rqTitle").innerText=="Rewards quiz"){
-              return 2//supersonic
-            }else if(document.querySelector(".bt_title")&&document.querySelector(".bt_title").innerText=="Today's Rewards poll"){
-              return 3//poll
-            }else if(document.querySelector(".b_focusLabel")&&document.querySelector(".b_focusLabel").innerText=="Bing homepage quiz"){
-              return 4//homepage quiz
-            }else{
-              return 0
-            }
-          })
+          var quizType=await eval(`
+            pages[1].evaluate(async function(){
+              if(document.querySelector(".btQueTtle")&&document.querySelector(".btQueTtle").innerText=="This or that?"){//this or that
+                return 1//this or that
+              }else if(document.querySelector(".rqTitle")&&document.querySelector(".rqTitle").innerText=="Rewards quiz"){
+                return 2//supersonic
+              }else if(document.querySelector(".bt_title")&&document.querySelector(".bt_title").innerText=="Today's Rewards poll"){
+                return 3//poll
+              }else if(document.querySelector(".b_focusLabel")&&document.querySelector(".b_focusLabel").innerText=="Bing homepage quiz"){
+                return 4//homepage quiz
+              }else{
+                return 0
+              }
+            })
+          `)
           console.log("Quiz Type: "+quizType)
 
           switch(quizType){
             case 1:
               for(var question=0;question<7;question++){
-                await pages[1].evaluate(async function(){
-                  var options=document.getElementsByClassName("btOptionCard")
-                  options[parseInt(Math.random()*1.9)].click()
-                })
+                await eval(`
+                  pages[1].evaluate(async function(){
+                    var options=document.getElementsByClassName("btOptionCard")
+                    options[parseInt(Math.random()*1.9)].click()
+                  })
+                `)
                 await sleep(5000)
               }
             break
@@ -188,35 +205,50 @@ async function doDailySet(browser,account,proxy){
                 if(question%5==0){
                   try{
                     await pages[1].click('#rqAnswerOption0')
-                  }catch(ignore){}
+                  }catch(ignore){console.log("Error Clicking")}
                 }
-                await pages[1].evaluate(async function(){
-                  for(var option of document.querySelector(".btOptions").children){
-                    if(option.children[0].getAttribute("iscorrectoption")=="True"){
-                      option.children[0].click()
+                console.log(await eval(`
+                  pages[1].evaluate(async function(){
+                    if(document.querySelector(".btOptions")){
+                      for(var option of document.querySelector(".btOptions").children){
+                        if(option.children[0].getAttribute("iscorrectoption")=="True"){
+                          option.children[0].click()
+                        }
+                      }
+                      return "Subtype 1"
+                    }else{
+                      for(var option of document.getElementsByClassName("rq_button")){
+                        option.querySelector("input").click()
+                      }
+                      return "Subtype 2"
                     }
-                  }
-                })
+                  })
+                `))
                 await sleep(3000)
               }
             break
             case 3:
-              await pages[1].evaluate(async function(){
-                btoption0.click()
-              })
+              await eval(`
+                pages[1].evaluate(async function(){
+                  btoption0.click()
+                })
+              `)
               await sleep(3000)
             break
             case 4:
               for(var question=0;question<7;question++){
                 try{
-                  await pages[1].evaluate(async function(){
-                    document.getElementsByClassName("b_vPanel")[document.getElementsByClassName("b_vPanel").length-1].querySelector(".wk_paddingBtm").onmouseup()
-                  // WKQuiz_V2.showAnswerPane(event, 0, '')
-                  })
+                  await eval(`
+                    pages[1].evaluate(async function(){
+                      document.getElementsByClassName("b_vPanel")[document.getElementsByClassName("b_vPanel").length-1].querySelector(".wk_paddingBtm").onmouseup()
+                    })
+                  `)
                   await sleep(500)
-                  await pages[1].evaluate(async function(){
-                    WKQuiz_V2.showQuestionPane()             
-                  })
+                  await eval(`
+                    pages[1].evaluate(async function(){
+                      WKQuiz_V2.showQuestionPane()             
+                    })
+                  `)
                   await sleep(500)
                 }catch(ignore){}
               }
@@ -247,7 +279,7 @@ async function doDailySet(browser,account,proxy){
   }
 }
 
-async function run(account,proxy) {
+async function run(account,password,proxy) {
   try{
     var args=[
       '--start-maximized',
@@ -268,7 +300,7 @@ async function run(account,proxy) {
       console.log("Browser Failed To Start: "+e)
       return
   }
-  var balance=await doSearches(browser,0,account,proxy)
+  var balance=await doSearches(browser,0,account,password,proxy)
   console.log("PC Searches Done")
   if(balance.earnedMobileSearch.includes('/')){
     console.log("Starting Mobile")
@@ -287,9 +319,9 @@ async function run(account,proxy) {
 var accountNum=0
 async function main(){
   searches=await updateTrendingWords()
-  await run(config.get("accounts")[accountNum],config.get("proxys")[accountNum])
+  await run(config.get("accounts")[accountNum],config.get("passwords")[accountNum],config.get("proxys")[accountNum])
   accountNum++
-  if(accountNum>=config.get("accounts")){
+  if(accountNum>=config.get("accounts").length){
     console.log("All Accounts Done: Exiting")
     process.exit(0)
   }
