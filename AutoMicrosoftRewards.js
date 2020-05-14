@@ -162,11 +162,22 @@ async function doDailySet(browser,account,proxy){
   }catch(e){
     console.log("Error Loading Page: "+e)
   }
+  await sleep(5000)
+  var waitCount=0
   for(var x=0;x<3;x++){
     try{
       var clickReturn=await clickDailySet(mainPage,x)
       if(clickReturn=="done"){
         console.log("Daily Set "+x+" Already Done")
+      }else if (clickReturn=="error"){
+        console.log("Daily Set Not Found Waiting")
+        await sleep(5000)
+        waitCount++
+        if(waitCount>5){
+          console.log("daily set "+x+"failed")
+        }else{
+          x--
+        }
       }else{
         await new Promise((resolve) => {
           setTimeout(resolve, 5000);
@@ -222,12 +233,12 @@ async function doDailySet(browser,account,proxy){
             break
             case 2:
               for(var question=0;question<20;question++){
-                if(question%5==0){
+                if(question%3==0){
                   try{
                     await pages[1].click('#rqAnswerOption0')
-                  }catch(ignore){console.log("Error Clicking")}
+                  }catch(ignore){}
                 }
-                console.log(await eval(`
+                await eval(`
                   pages[1].evaluate(async function(){
                     if(document.querySelector(".btOptions")){
                       for(var option of document.querySelector(".btOptions").children){
@@ -243,7 +254,7 @@ async function doDailySet(browser,account,proxy){
                       return "Subtype 2"
                     }
                   })
-                `))
+                `)
                 await sleep(3000)
               }
             break

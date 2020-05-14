@@ -37,15 +37,15 @@ module.exports = function(config,fs) {
         }
     }
     this.clickDailySet=async function(inPage,num){
-        try{
-            await inPage.goto("https://account.microsoft.com/rewards?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
-          }catch(e){
-            console.log("Error Loading Page: "+e)
-          }
-          await sleep(1000)
           return await eval(`  
             inPage.evaluate(function(num){
+                if(!document.querySelector(".m-card-group")){
+                    return "error"
+                }
                 var set=document.querySelector(".m-card-group").getElementsByTagName("mee-card")
+                if(set.length<3){
+                    return "error"
+                }
                 if(set[num].getElementsByClassName("mee-icon mee-icon-AddMedium").length>0||set[num].getElementsByClassName("mee-icon mee-icon-HourGlass x-hidden-focus").length>0){
                     set[num].getElementsByTagName('a')[1].click()
                 }else{
