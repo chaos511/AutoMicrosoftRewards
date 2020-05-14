@@ -101,6 +101,7 @@ async function doSearches(browser,deviceType,account,password,proxy){
   }
   var startingSearchNum=Math.max(parseInt(Math.random()*(searches.length-maxSearches)),0)
   var bal
+  await sleep(5000)
   for(var x=0;x<maxSearches;x++){
     if(x>=searches.length){
       console.log("search list to short: stopping")
@@ -155,6 +156,11 @@ async function doDailySet(browser,account,proxy){
       })
     })
     await saveCookies("microsoft",account,mainPage)
+  }
+  try{
+    await mainPage.goto("https://account.microsoft.com/rewards?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+  }catch(e){
+    console.log("Error Loading Page: "+e)
   }
   for(var x=0;x<3;x++){
     try{

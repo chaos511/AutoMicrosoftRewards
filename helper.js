@@ -7,12 +7,14 @@ module.exports = function(config,fs) {
         var loginText=
             await eval(`
                 inPage.evaluate(function(){
-                loginText=document.querySelector("#id_s").innerText
-                if(loginText=="Sign in"&&document.querySelector("#id_s").getAttribute("aria-hidden")=="false"){
-                    return true
-                }
-                return false
-                })
+                    if(document.querySelector("#id_s")){
+                        loginText=document.querySelector("#id_s").innerText
+                        if(loginText=="Sign in"&&document.querySelector("#id_s").getAttribute("aria-hidden")=="false"){
+                            return true
+                        }
+                    }
+                    return false
+                    })
             `)
         console.log("login: "+loginText)
         if(loginText){
@@ -72,7 +74,11 @@ module.exports = function(config,fs) {
                 }else{
                     bal['earnedMobileSearch']='failed to get earnings'
                 }
-                bal['total']=document.querySelector(".credits2").innerText.split(' ')[0]
+                if(document.querySelector(".credits2")){
+                    bal['total']=document.querySelector(".credits2").innerText.split(' ')[0]
+                }else{
+                    bal['total']="failed"
+                }
                 return bal
             })
         `)
