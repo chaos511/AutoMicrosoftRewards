@@ -210,7 +210,7 @@ async function doDailySet(browser,account,proxy){
                 return 2//supersonic
               }else if(document.querySelector(".bt_title")&&document.querySelector(".bt_title").innerText=="Today's Rewards poll"){
                 return 3//poll
-              }else if(document.querySelector(".b_focusLabel")&&document.querySelector(".b_focusLabel").innerText=="Bing homepage quiz"){
+              }else if(document.querySelector(".b_focusLabel")&&document.querySelector(".b_focusLabel").innerText.includes("quiz")){
                 return 4//homepage quiz
               }else{
                 return 0
@@ -267,11 +267,18 @@ async function doDailySet(browser,account,proxy){
               await sleep(3000)
             break
             case 4:
-              for(var question=0;question<7;question++){
+              for(var question=0;question<15;question++){
                 try{
                   await eval(`
                     pages[1].evaluate(async function(){
-                      document.getElementsByClassName("b_vPanel")[document.getElementsByClassName("b_vPanel").length-1].querySelector(".wk_paddingBtm").onmouseup()
+                      if(document.getElementsByClassName("b_vPanel").length>0){
+                        try{
+                          document.getElementsByClassName("b_vPanel")[document.getElementsByClassName("b_vPanel").length-1].querySelector(".wk_paddingBtm").onmouseup()
+                        }catch(ignore){}
+                        try{
+                          document.getElementsByClassName("b_vPanel")[0].querySelector(".wk_paddingBtm").onmouseup()
+                        }catch(ignore){}
+                      }
                     })
                   `)
                   await sleep(500)
@@ -364,3 +371,12 @@ async function main(){
   setTimeout(main,config.get("accountDelay"))
 }
 main()
+// puppeteer.launch({
+//     headless: false,
+//     defaultViewport: null,
+//     args:[
+//       '--start-maximized',
+//       '--proxy-server='+'socks5://127.0.0.1:1081',  
+//     ],
+//     executablePath: config.get("browserExecutablePath"),
+// });

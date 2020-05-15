@@ -4,3 +4,4 @@ accounts.txt
 local.json
 browser/*
 cookies/*
+config/local - Copy.json
