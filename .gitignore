@@ -5,3 +5,5 @@ local.json
 browser/*
 cookies/*
 config/local - Copy.json
+config/local - all.json
+config/local - myaccount.json

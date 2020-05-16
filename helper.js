@@ -10,15 +10,21 @@ module.exports = function(config,fs) {
                     if(document.querySelector("#id_s")){
                         loginText=document.querySelector("#id_s").innerText
                         if(loginText=="Sign in"&&document.querySelector("#id_s").getAttribute("aria-hidden")=="false"){
-                            return true
+                            return 1
                         }
                     }
-                    return false
+                    if(document.querySelector(".mectrl_headertext.mectrl_truncate")){
+                        loginText=document.querySelector(".mectrl_headertext.mectrl_truncate").innerText
+                        if(loginText=="Sign in"){
+                            return 2
+                        }
+                    }
+                    return 0
                     })
             `)
         console.log("login: "+loginText)
-        if(loginText){
-            await inPage.click('#id_l');
+        if(loginText>0){
+            await inPage.click(loginText==1?'#id_l':'.mectrl_headertext.mectrl_truncate');
             await inPage.waitForSelector("#i0116")
             await sleep(1000)
             await inPage.type("#i0116",username+'\n')

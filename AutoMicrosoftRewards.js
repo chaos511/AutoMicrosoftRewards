@@ -136,7 +136,7 @@ async function doSearches(browser,deviceType,account,password,proxy){
   return bal
 }
 
-async function doDailySet(browser,account,proxy){
+async function doDailySet(browser,account,password,proxy){
   var pages = await browser.pages();
   var mainPage=pages[0]
   await mainPage.setUserAgent(config.get("pcUserAgent"))
@@ -145,17 +145,6 @@ async function doDailySet(browser,account,proxy){
     await loadCookies("bing",account,mainPage,true)
   }catch(e){
     console.log("Error Load Cookies For Microsoft_"+account)
-    try{
-      await mainPage.goto("https://account.microsoft.com/rewards/?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
-    }catch(e){
-      console.log("Error Loading Page: "+e)
-    }
-    await new Promise(async(resolve, reject) => {
-      readline.question("\n\nlogin to the Microsoft and press enter here when done:",async function(){
-        return resolve(true);  
-      })
-    })
-    await saveCookies("microsoft",account,mainPage)
   }
   try{
     await mainPage.goto("https://account.microsoft.com/rewards?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
@@ -163,6 +152,17 @@ async function doDailySet(browser,account,proxy){
     console.log("Error Loading Page: "+e)
   }
   await sleep(5000)
+  console.log("login")
+  await bingLogin(mainPage,account,password)
+  console.log("done login")
+  await sleep(5000)
+  try{
+    await mainPage.goto("https://account.microsoft.com/rewards?setmkt=en-us&setlang=en-us", { waitUntil: 'load', timeout: 0 });
+  }catch(e){
+    console.log("Error Loading Page: "+e)
+  }
+  await sleep(5000)
+  await saveCookies("microsoft",account,mainPage)
   var waitCount=0
   for(var x=0;x<3;x++){
     try{
@@ -346,14 +346,14 @@ async function run(account,password,proxy) {
   console.log("PC Searches Done")
   if(balance.earnedMobileSearch.includes('/')){
     console.log("Starting Mobile")
-    await doSearches(browser,1,account,proxy)
+    await doSearches(browser,1,account,password,proxy)
     console.log("Mobile Searches Done")
   }else{
     console.log("Mobile Not Available")
   }
   if(config.get("doDailySet")){
     console.log("Starting Daily Set")
-    await doDailySet(browser,account,proxy)
+    await doDailySet(browser,account,password,proxy)
   }
   console.log("Account "+account+" Done, Closing Browser")
   browser.close()
