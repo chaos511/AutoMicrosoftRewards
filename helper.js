@@ -19,12 +19,17 @@ module.exports = function(config,fs) {
                             return 2
                         }
                     }
+                    if(document.location.href.includes("login.live")){
+                        return 3
+                    }
                     return 0
                     })
             `)
         console.log("login: "+loginText)
         if(loginText>0){
-            await inPage.click(loginText==1?'#id_l':'.mectrl_headertext.mectrl_truncate');
+            if(loginText<3){
+                await inPage.click(loginText==1?'#id_l':'.mectrl_headertext.mectrl_truncate');
+            }
             await inPage.waitForSelector("#i0116")
             await sleep(1000)
             await inPage.type("#i0116",username+'\n')
