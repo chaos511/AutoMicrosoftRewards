@@ -1,0 +1,2 @@
+AutoMicrosoftRewards-win.exe
+pause

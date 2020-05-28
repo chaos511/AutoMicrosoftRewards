@@ -4,6 +4,7 @@
   "randomDelay": 5000,
   "searchDelay": 5000,
   "searchPageDelay": 5000,
+  "activityDelay":5000,
   "accountDelay": 60000,
   "updateCookies": true,
   "maxPcSearches": 35,
