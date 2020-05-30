@@ -71,7 +71,9 @@ async function doSearches(browser, deviceType, account, password, proxy) {
     await mainPage.waitForSelector("#id_l");
     await sleep(10000);
     console.log("login");
-    await bingLogin(mainPage, account, password);
+    try{
+      await bingLogin(mainPage, account, password);
+    }catch(e){console.log("login timeout")}
     console.log("done login");
     if (config.get("updateCookies")) {
       try {
@@ -185,7 +187,9 @@ async function openMicrosoftPage(inBrowser, inAccount, password) {
   }
   await sleep(5000);
   console.log("login");
+  try{
   await bingLogin(page, inAccount, password);
+}catch(e){console.log("login timeout")}
   console.log("done login");
   await sleep(5000);
   try {
@@ -239,6 +243,7 @@ async function doDailySet(browser, account, password, proxy) {
       : date.getMonth() + 1;
   var day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
   dayString = month + "/" + day + "/" + date.getFullYear();
+  // var count=0
   for (var set in userInfo.dashboard.dailySetPromotions[dayString]) {
     try {
       if (await isSetCompleted(set, microsoftPage)) {
@@ -363,9 +368,12 @@ async function doDailySet(browser, account, password, proxy) {
       console.log("daily set " + set + " failed: " + e);
     }
     try{
+      await sleep(5000)
       await activityPage.close();
     }catch(ignore){}
   }
+  await clickDailySet(microsoftPage,0)
+  await sleep(5000)
 }
 
 async function run(account, password, proxy) {
