@@ -54,6 +54,7 @@ async function doSearches(browser, deviceType, account, password, proxy) {
   } else {
     await mainPage.setUserAgent(config.get("mobileUserAgent"));
   }
+  await mainPage.bringToFront()
   try {
     await loadCookies("bing", account, mainPage, true);
   } catch (e) {}
