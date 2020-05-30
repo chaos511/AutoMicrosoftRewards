@@ -21,7 +21,13 @@ module.exports = function(config,fs) {
                     }
                     if(document.location.href.includes("login.live")){
                         return 3
-                    }
+                    }               
+                    if(document.querySelector("#mectrl_main_trigger")){
+                        loginText=document.querySelector("#mectrl_main_trigger").innerText
+                        if(loginText.includes("Sign in to your account")||loginText.includes("Iniciar sesión en tu cuenta")){
+                            return 4
+                        }
+                    }    
                     return 0
                     })
             `)
