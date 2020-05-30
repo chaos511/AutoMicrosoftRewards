@@ -7,7 +7,7 @@ if (!fs.existsSync("./config/default.json")) {
   }
   console.log("No config file found creating");
   defaultConfig = {
-    browserExecutablePath: "./browser/chrome-win/chrome.exe",
+    browserExecutablePath: "C:/Program Files (x86)/BraveSoftware/Brave-Browser/Application/brave.exe",
     useHeadless: false,
     randomDelay: 5000,
     searchDelay: 5000,
