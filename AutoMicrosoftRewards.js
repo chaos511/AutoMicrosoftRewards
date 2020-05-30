@@ -1,3 +1,4 @@
+console.log("AutoMicrosoftRewards Version: 0.0.9")
 const cookiesFilePath = "cookies.json";
 const fs = require("fs");
 if (!fs.existsSync("./config/default.json")) {

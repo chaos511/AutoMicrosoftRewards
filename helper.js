@@ -25,6 +25,7 @@ module.exports = function(config,fs) {
                     if(document.querySelector("#mectrl_main_trigger")){
                         loginText=document.querySelector("#mectrl_main_trigger").innerText
                         if(loginText.includes("Sign in to your account")||loginText.includes("Iniciar sesión en tu cuenta")){
+                            document.querySelector("#mectrl_main_trigger").click()
                             return 4
                         }
                     }    
@@ -36,9 +37,9 @@ module.exports = function(config,fs) {
             if(loginText<3){
                 await inPage.click(loginText==1?'#id_l':'.mectrl_headertext.mectrl_truncate');
             }
-            if(loginText==4){
-                await inPage.click("#mectrl_main_trigger")
-            }
+            // if(loginText==4){
+            //     await inPage.click("#mectrl_main_trigger")
+            // }
             await inPage.waitForSelector("#i0116")
             await sleep(1000)
             await inPage.type("#i0116",username+'\n')
