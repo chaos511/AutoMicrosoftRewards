@@ -3,7 +3,7 @@ module.exports = function(config,fs) {
     const xml2js = require('xml2js');
     const parser = new xml2js.Parser({ attrkey: "ATTR" });
 
-    this.bingLogin=async function(inPage,username,password){
+    this.bingLogin=async function(inPage,username,password,sc){
         var loginText=
             await eval(`
                 inPage.evaluate(function(){
@@ -21,25 +21,31 @@ module.exports = function(config,fs) {
                     }
                     if(document.location.href.includes("login.live")){
                         return 3
-                    }               
+                    }   
+					
                     if(document.querySelector("#mectrl_main_trigger")){
                         loginText=document.querySelector("#mectrl_main_trigger").innerText
                         if(loginText.includes("Sign in to your account")||loginText.includes("Iniciar sesión en tu cuenta")){
                             document.querySelector("#mectrl_main_trigger").click()
                             return 4
                         }
-                    }    
+                    } 
+                   if(document.querySelector("#raf-signin-link-id")){
+					   return 5
+                        
+                    }  					
                     return 0
                     })
             `)
         console.log("login: "+loginText)
+        await this.saveScreenshot(username.split("@")[0],"loginStage1"+sc,inPage)
         if(loginText>0){
             if(loginText<3){
                 await inPage.click(loginText==1?'#id_l':'.mectrl_headertext.mectrl_truncate');
             }
-            // if(loginText==4){
-            //     await inPage.click("#mectrl_main_trigger")
-            // }
+             if(loginText==5){
+                await inPage.click("#raf-signin-link-id")
+             }
             await inPage.waitForSelector("#i0116")
             await sleep(1000)
             await inPage.type("#i0116",username+'\n')
@@ -55,10 +61,13 @@ module.exports = function(config,fs) {
                 })
             `)
             await sleep(1000)
+            await this.saveScreenshot(username.split("@")[0],"loginStage2"+sc,inPage)
         }
     }
     this.clickDailySet=async function(inPage,num){
-          return await eval(`  
+        var x="error"
+        try{  
+        x= await eval(`  
             inPage.evaluate(function(num){
                 if(!document.querySelector(".m-card-group")){
                     return "error"
@@ -68,12 +77,15 @@ module.exports = function(config,fs) {
                     return "error"
                 }
                 if(set[num].getElementsByClassName("mee-icon mee-icon-AddMedium").length>0||set[num].getElementsByClassName("mee-icon mee-icon-HourGlass x-hidden-focus").length>0){
-                    set[num].getElementsByTagName('a')[1].click()
+                    set[num].getElementsByTagName('a')[0].click()
                 }else{
                     return "done"
                 }
             },num)
-          `)
+          `)}catch(ignore){
+            console.log("Error Clicking Daily Set")
+          }
+          return x
     }
     this.getBalance=async function (inBrowser,account){
         page=await inBrowser.newPage()
@@ -120,6 +132,9 @@ module.exports = function(config,fs) {
         }
     }
     this.loadCookies=async function (prefix,cookiesPath,inPage,log){
+        if (!fs.existsSync("cookies")) {
+            fs.mkdirSync("cookies");
+          }
         cookiesPath+='.json'
         const previousSession = fs.existsSync("cookies/"+prefix+"_"+cookiesPath)
         if (previousSession) {
@@ -130,11 +145,11 @@ module.exports = function(config,fs) {
             await inPage.setCookie(cookie)
             }
             if(log){
-            console.log('Session '+prefix+"_"+cookiesPath+' has been loaded in the browser')
+                console.log('Session '+prefix+"_"+cookiesPath+' has been loaded in the browser')
             }
         }
         }else{
-        console.log('Session '+prefix+"_"+cookiesPath+' could not be found')
+            console.log('Session '+prefix+"_"+cookiesPath+' could not be found')
         }
     }
     this.saveCookies=async function (prefix,cookiesPath,inPage){
@@ -146,6 +161,17 @@ module.exports = function(config,fs) {
         fs.writeFileSync("cookies/"+prefix+"_"+cookiesPath, JSON.stringify(cookiesObject,null,2));
         console.log('Session has been saved to ' + prefix+"_"+cookiesPath);
     }
+    this.saveScreenshot=async function (prefix,screenshotName,inPage){
+        if (!fs.existsSync("screenshots")) {
+            await fs.mkdirSync("screenshots");
+          }
+          if (!fs.existsSync(`screenshots/${prefix}`)) {
+            await fs.mkdirSync(`screenshots/${prefix}`);
+          }
+          await inPage.screenshot({path: `screenshots/${prefix}/${screenshotName}.png`});
+
+          console.log(`screenshot ${screenshotName}.png saved`)
+        }
     this.updateTrendingWords=async function (){
         var newTrendingSearches=[]
         try {
@@ -157,12 +183,12 @@ module.exports = function(config,fs) {
                 }
             }
             else {
-                console.log("error getting trends")
+                console.log("Error Downloading Google Trend Wordlist ")
                 return
             }
         });
         } catch (e) {
-        console.log("error getting trends: "+e)
+        console.log("Error Downloading Google Trend Wordlist: "+e)
         return
         }
         var trendingSearches=[]

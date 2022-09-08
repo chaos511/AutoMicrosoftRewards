@@ -1,2 +1,2 @@
-AutoMicrosoftRewards-win.exe
+node AutoMicrosoftRewards.js
 pause
